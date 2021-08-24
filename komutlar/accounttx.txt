@@ -1,0 +1,125 @@
+module.exports = {
+   kod: "account",
+  async run (client, message, args) {
+const qdb = require('quick.db')
+const discord = require('discord.js')
+const embed = new discord.MessageEmbed().setFooter("Voxi").setTimestamp().setColor("BLACK").setTitle("Account")
+let member = message.mentions.members.first() || message.guild.members.cache.get(args[0]);
+if(!args[0]) {
+message.channel.send("Hata: Lütfen komutu doğru kullanınız: `.account help`")
+}
+
+if(args[0] === "help"){
+  let sifre = ""
+  if(!qdb.fetch(`acc_${message.author.id}`)) {
+    sifre = "Hesabın Yok."
+  } else {
+    sifre = "Hesabın Var."
+  }
+   const embedsss = new discord.MessageEmbed()
+   .addFields(
+    { name: 'Hesabının detaylarına bakarsınız. Şifre Dahil.', value: `\`\`\`.account details\`\`\``, inline: true },
+    { name: 'Hesabının şifresini sıfırlarsınız.', value: `\`\`\`.account passdelete\`\`\``, inline: true },
+    { name: 'Hesabınız yok ise şifre alırsınız.', value: `\`\`\`.account signup --- ${sifre}\`\`\``, inline: true }
+  )
+  message.channel.send(embedsss)
+}
+
+if(args[0] === "passdelete"){
+  if(!qdb.fetch(`acc_${message.author.id}`)) {
+    message.channel.send("Hata: `Hesabın olmadığı için bu işlemi gerçekleştiremiyosun.` `.account signup`")
+  } else {
+    message.channel.send(embed.setDescription("Check your dms"))
+    
+    let msg = await message.author.send("Hesabının şifresini sıfırlamak istiyormusun?")
+    let reactions = ["✅","❎"];
+    for (let reaction of reactions) await msg.react(reaction);
+    const filter = (reaction, user) => {
+      return ['✅', '❎'].includes(reaction.emoji.name) && user.id === message.author.id;
+  };
+
+  msg.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
+  .then(collected => {
+      const reaction = collected.first();
+      if (reaction.emoji.name === '✅') {
+         msg.delete();
+         message.author.send("Hesabının şifresi başarılıyla sıfırlandı. `.account signup`")
+        qdb.delete(`acc_${message.author.id}`)
+      }
+      if (reaction.emoji.name === '❎') {
+        msg.delete();
+        message.author.send("Hesabının şifre sıfırlanması iptal edildi.")
+      }
+  })
+  }
+}
+
+if(args[0] === "details"){
+  if(!qdb.fetch(`acc_${message.author.id}`)) {
+  message.channel.send("Hata: `Hesabın olmadığı için bu işlemi gerçekleştiremiyosun.` `.account signup`")
+  } else {
+    var passwordss = qdb.fetch(`acc_${message.author.id}`)
+    message.channel.send(embed.setDescription("Check your dms"))
+const embedss = new discord.MessageEmbed()
+.setFooter("Voxi")
+.setTitle("Account Details")
+.setColor("BLUE")
+.addFields(
+  { name: 'Account Name', value: `\`\`\`${message.author.tag}\`\`\``, inline: true },
+  { name: 'Password', value: `\`\`\`${passwordss}\`\`\``, inline: true },
+  { name: 'Durum', value: `\`\`\`İyi\`\`\``, inline: true }
+)
+message.author.send(embedss)
+  }
+
+}
+
+if(args[0] === "password"){
+if(!qdb.fetch(`acc_${message.author.id}`)) {
+message.channel.send("Hata: `Hesabın olmadığı için bu işlemi gerçekleştiremiyosun.` `.account signup`")
+} else {
+  var text = "";
+var possible = "½£>$½{Abscefwefsqwe0123456789";
+
+for (var i = 0; i < 5; i++)
+  text += possible.charAt(Math.floor(Math.random() * possible.length));
+  message.channel.send(embed.setDescription("Check your dms"))
+  message.author.send(new discord.MessageEmbed()
+         .setColor("BLACK")
+         .addFields(
+           { name: 'Güvenlik!', value: `\`\`\`${text}\`\`\``, inline: true },
+         ))
+message.author.send("Kodu gir.").then(msg => {
+    var passwords = qdb.fetch(`acc_${message.author.id}`)
+    let kod = msg.first().content
+if(kod === text) {
+message.author.send("Doğru değil")
+} else {
+message.author.send("Doğru")
+}
+})
+  }
+}
+
+
+if(args[0] === "signup") {
+
+if(!qdb.fetch(`acc_${message.author.id}`)) {
+   var text = "";
+ var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+ for (var i = 0; i < 5; i++)
+   text += possible.charAt(Math.floor(Math.random() * possible.length));
+  message.channel.send(embed.setDescription("Check your dms"))
+  message.author.send(embed.setDescription(`Your password is: ${text}`))
+qdb.set(`acc_${message.author.id}`, text)
+
+} else {
+message.reply("Hata: `Sisteme zaten kayıtlısın.`")
+}
+
+}
+
+
+  }
+}
